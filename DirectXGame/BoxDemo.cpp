@@ -35,16 +35,17 @@ void BoxDemo::Initialize()
 void BoxDemo::BuildFX()
 {
 	HRESULT hr = S_OK;
+/*
 	DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #if defined(DEBUG) || defined(_DEBUG)
 	shaderFlags |= D3D10_SHADER_DEBUG;
 	shaderFlags |= D3D10_SHADER_SKIP_OPTIMIZATION;
 #endif // defined(DEBUG) || defined(_DEBUG)
 
-	/*ID3DBlob* compiledShader = nullptr;
+	ID3DBlob* compiledShader = nullptr;
 	ID3DBlob* compilationMsgs = nullptr;
 
-	HRESULT hr = D3DCompileFromFile(L"FX/color.fx", nullptr, nullptr, nullptr, "fx_5_0", shaderFlags, 0, &compiledShader, &compilationMsgs);
+	hr = D3DCompileFromFile(L"FX/color.fx", nullptr, nullptr, nullptr, "fx_4_0", shaderFlags, 0, &compiledShader, &compilationMsgs);
 	if (compilationMsgs != nullptr)
 	{
 		GameException ex((char*)compilationMsgs->GetBufferPointer(), hr);
@@ -55,7 +56,14 @@ void BoxDemo::BuildFX()
 	{
 		ReleaseObject(compiledShader);
 		throw GameException("D3DCompileFromFile() failed.");
-	}*/
+	}
+
+	hr = D3DX11CreateEffectFromMemory(compiledShader->GetBufferPointer(), compiledShader->GetBufferSize(), 0, mDirect3DDevice, &mFX);
+	if (FAILED(hr))
+	{
+		throw GameException("D3DX11CreateEffectFromMemory() failed.", hr);
+	}
+*/
 
 	std::vector<char> compiledShader;
 	Utility::LoadBinaryFile(L"FX/color.cso", compiledShader);
@@ -68,7 +76,10 @@ void BoxDemo::BuildFX()
 
 	mTech = mFX->GetTechniqueByName("ColorTech");
 	mfxWorldViewProj = mFX->GetVariableByName("gWorldViewProj")->AsMatrix();
-
+	if (mfxWorldViewProj->IsValid() == false)
+	{
+		throw GameException("Invalid effect variable cast. ");
+	}
 }
 
 void BoxDemo::BuildVertexLayout()
@@ -80,7 +91,7 @@ void BoxDemo::BuildVertexLayout()
 	};
 
 	D3DX11_PASS_DESC passDesc;
-	mTech->GetPassByIndex(0)->GetDesc(&passDesc);
+	mTech->GetPassByName("P0")->GetDesc(&passDesc);
 
 	if (FAILED(mDirect3DDevice->CreateInputLayout(vertexDesc, 2, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &mInputLayout)))
 	{
@@ -94,14 +105,14 @@ void BoxDemo::BuildGeometryBuffers()
 	// Create vertex buffer
 	Vertex vertices[] = 
 	{
-		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), (XMFLOAT4)Colors::White },
-		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), (XMFLOAT4)Colors::Black },
-		{ XMFLOAT3(1.0f, 1.0f, -1.0f), (XMFLOAT4)Colors::Red },
-		{ XMFLOAT3(1.0f, -1.0f, -1.0f), (XMFLOAT4)Colors::Green },
-		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), (XMFLOAT4)Colors::Blue },
-		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), (XMFLOAT4)Colors::Yellow },
-		{ XMFLOAT3(1.0f, 1.0f, 1.0f), (XMFLOAT4)Colors::Cyan },
-		{ XMFLOAT3(1.0f, -1.0f, 1.0f), (XMFLOAT4)Colors::Magenta }
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(reinterpret_cast<const float*>(&Colors::White)) },
+		{ XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(reinterpret_cast<const float*>(&Colors::Black)) },
+		{ XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(reinterpret_cast<const float*>(&Colors::Red)) },
+		{ XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(reinterpret_cast<const float*>(&Colors::Green)) },
+		{ XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(reinterpret_cast<const float*>(&Colors::Blue)) },
+		{ XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(reinterpret_cast<const float*>(&Colors::Yellow)) },
+		{ XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(reinterpret_cast<const float*>(&Colors::Cyan)) },
+		{ XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(reinterpret_cast<const float*>(&Colors::Magenta)) }
 	};
 
 	D3D11_BUFFER_DESC vbd;
@@ -188,15 +199,18 @@ void BoxDemo::Draw(const GameTime& gameTime)
 	XMMATRIX proj = XMLoadFloat4x4(&mProj);
 	XMMATRIX worldViewProj = world * view * proj;
 
-	mfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+	mfxWorldViewProj->SetMatrix(reinterpret_cast<const float*>(&worldViewProj));
 
-	D3DX11_TECHNIQUE_DESC techDesc;
+	/*D3DX11_TECHNIQUE_DESC techDesc;
 	mTech->GetDesc(&techDesc);
 	for (UINT p = 0; p < techDesc.Passes; p++)
 	{
 		mTech->GetPassByIndex(p)->Apply(0, mDirect3DDeviceContext);
 		mDirect3DDeviceContext->DrawIndexed(36, 0, 0);
-	}
+	}*/
+
+	mTech->GetPassByName("P0")->Apply(0, mDirect3DDeviceContext);
+	mDirect3DDeviceContext->DrawIndexed(36, 0, 0);
 
 	if (FAILED(mSwapChain->Present(0, 0)))
 	{

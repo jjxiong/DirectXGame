@@ -65,7 +65,7 @@
       <ShaderType>Effect</ShaderType>
     </FxCompile>
     <FxCompile>
-      <ShaderModel>5.0</ShaderModel>
+      <ShaderModel>4.0</ShaderModel>
       <ObjectFileOutput>$(SolutionDir)$(ProjectName)/FX/%(Filename).cso</ObjectFileOutput>
     </FxCompile>
   </ItemDefinitionGroup>
