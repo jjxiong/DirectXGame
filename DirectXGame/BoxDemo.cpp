@@ -209,6 +209,7 @@ void BoxDemo::Draw(const GameTime& gameTime)
 		mDirect3DDeviceContext->DrawIndexed(36, 0, 0);
 	}*/
 
+
 	mTech->GetPassByName("P0")->Apply(0, mDirect3DDeviceContext);
 	mDirect3DDeviceContext->DrawIndexed(36, 0, 0);
 
