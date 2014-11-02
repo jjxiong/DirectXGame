@@ -116,16 +116,17 @@ void BoxDemo::BuildGeometryBuffers()
 	};
 
 	D3D11_BUFFER_DESC vbd;
+	ZeroMemory(&vbd, sizeof(vbd));
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex)* 8;
+	vbd.ByteWidth = sizeof(Vertex)* ARRAYSIZE(vertices);
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0; 
 	vbd.MiscFlags = 0; 
 	vbd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA vintData;
+	ZeroMemory(&vintData, sizeof(vintData));
 	vintData.pSysMem = vertices;
-
 	if (FAILED(mDirect3DDevice->CreateBuffer(&vbd, &vintData, &mBoxVB)))
 	{
 		throw GameException("BuildGeometryBuffers create vertex buffer failed.");
@@ -159,6 +160,7 @@ void BoxDemo::BuildGeometryBuffers()
 	};
 
 	D3D11_BUFFER_DESC ibd;
+	ZeroMemory(&ibd, sizeof(ibd));
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
 	ibd.ByteWidth = sizeof(UINT)* 36;
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -167,8 +169,8 @@ void BoxDemo::BuildGeometryBuffers()
 	ibd.StructureByteStride = 0;
 
 	D3D11_SUBRESOURCE_DATA iinitData;
+	ZeroMemory(&iinitData, sizeof(iinitData));
 	iinitData.pSysMem = indices;
-
 	if (FAILED(mDirect3DDevice->CreateBuffer(&ibd, &iinitData, &mBoxIB)))
 	{
 		throw GameException("BuildGeometryBuffers create index buffer failed.");
@@ -208,7 +210,6 @@ void BoxDemo::Draw(const GameTime& gameTime)
 		mTech->GetPassByIndex(p)->Apply(0, mDirect3DDeviceContext);
 		mDirect3DDeviceContext->DrawIndexed(36, 0, 0);
 	}*/
-
 
 	mTech->GetPassByName("P0")->Apply(0, mDirect3DDeviceContext);
 	mDirect3DDeviceContext->DrawIndexed(36, 0, 0);
